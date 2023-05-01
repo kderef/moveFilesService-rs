@@ -87,3 +87,57 @@ macro_rules! pause {
         let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
     }
 }
+
+
+/// macro to (re-)open error log
+#[macro_export]
+macro_rules! open_error_log {
+    ($err_log_path:expr) => {
+        OpenOptions::new()
+            .append(true)
+            .write(true)
+            .create(true)
+            .open($err_log_path)
+            .unwrap_or_else(|e| {
+                let time = timestamp!();
+                eprintln!(
+                    "{} {}: `{}`",
+                    time.to_string().green(),
+                    "ERROR in error_log::OpenOptions()".red(),
+                    e.to_string().yellow()
+                );
+
+                exit(1);
+        })
+ 
+    };
+}
+
+/// macro to (re-)open activity log
+#[macro_export]
+macro_rules! open_activity_log {
+    ($activ_log_path:expr, $err_log:expr) => {
+        OpenOptions::new()
+            .append(true)
+            .write(true)
+            .create(true)
+            .open($activ_log_path)
+            .unwrap_or_else(|e| {
+                let time = timestamp!();
+                eprintln!(
+                    "{} {}: `{}`",
+                    time.to_string().green(),
+                    "ERROR in activity_log::OpenOptions()".red(),
+                    e.to_string().yellow()
+                );
+                report(
+                    &mut $err_log,
+                    format!("in activity_log::OpenOptions(): `{e}`\n").as_str(),
+                    false,
+                    LogLvl::Error,
+                );
+
+                exit(1);
+            })
+    };
+}

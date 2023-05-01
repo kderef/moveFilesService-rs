@@ -33,46 +33,11 @@ fn main() {
     let mut activity_log: File;
 
     let mut start_date = current_day!();
+    let mut error_log_path = timestamped_path(ERROR_LOG_PATH);
+    let mut activity_log_path = timestamped_path(ACTIVITY_LOG_PATH);
 
-    error_log = OpenOptions::new()
-        .append(true)
-        .write(true)
-        .create(true)
-        .open(timestamped_path(ERROR_LOG_PATH))
-        .unwrap_or_else(|e| {
-            let time = timestamp!();
-            eprintln!(
-                "{} {}: `{}`",
-                time.to_string().green(),
-                "ERROR in error_log::OpenOptions()".red(),
-                e.to_string().yellow()
-            );
-
-            exit(1);
-        });
-
-    activity_log = OpenOptions::new()
-        .append(true)
-        .write(true)
-        .create(true)
-        .open(timestamped_path(ACTIVITY_LOG_PATH))
-        .unwrap_or_else(|e| {
-            let time = timestamp!();
-            eprintln!(
-                "{} {}: `{}`",
-                time.to_string().green(),
-                "ERROR in activity_log::OpenOptions()".red(),
-                e.to_string().yellow()
-            );
-            report(
-                &mut error_log,
-                format!("in activity_log::OpenOptions(): `{e}`\n").as_str(),
-                false,
-                LogLvl::Error,
-            );
-
-            exit(1);
-        });
+    error_log = open_error_log!(error_log_path.clone());
+    activity_log = open_activity_log!(activity_log_path.clone(), &mut error_log);
 
     // check for config files (source.txt, destination) //
 
@@ -116,46 +81,18 @@ fn main() {
     loop {
         if current_day!() != start_date {
             start_date = current_day!();
+            error_log_path = timestamped_path(ERROR_LOG_PATH);
+            activity_log_path = timestamped_path(ACTIVITY_LOG_PATH);
             // if is a new day, reopen logs.
-            error_log = OpenOptions::new()
-                .append(true)
-                .write(true)
-                .create(true)
-                .open(timestamped_path(ERROR_LOG_PATH))
-                .unwrap_or_else(|e| {
-                    let time = timestamp!();
-                    eprintln!(
-                        "{} {}: `{}`",
-                        time.to_string().green(),
-                        "ERROR in error_log::OpenOptions()".red(),
-                        e.to_string().yellow()
-                    );
+            error_log = open_error_log!(error_log_path.clone());
+            activity_log = open_activity_log!(activity_log_path.clone(), error_log);
+        }
 
-                    exit(1);
-                });
-
-            activity_log = OpenOptions::new()
-                .append(true)
-                .write(true)
-                .create(true)
-                .open(timestamped_path(ACTIVITY_LOG_PATH))
-                .unwrap_or_else(|e| {
-                    let time = timestamp!();
-                    eprintln!(
-                        "{} {}: `{}`",
-                        time.to_string().green(),
-                        "ERROR in activity_log::OpenOptions()".red(),
-                        e.to_string().yellow()
-                    );
-                    report(
-                        &mut error_log,
-                        format!("in activity_log::OpenOptions(): `{e}`\n").as_str(),
-                        false,
-                        LogLvl::Error,
-                    );
-
-                    exit(1);
-                });
+        if !file_exists!(&error_log_path.clone()) {
+            error_log = open_error_log!(&error_log_path.clone());
+        }
+        if !file_exists!(&activity_log_path.clone()) {
+            activity_log = open_activity_log!(&activity_log_path.clone(), error_log);
         }
 
         for item in walkdir::WalkDir::new(&source).min_depth(1) {
