@@ -1,13 +1,12 @@
 [package]
 name = "moveFiles-service"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 build = "build.rs"
 
 # metadata for exe
 [package.metadata.winresource]
 FileDescription = "move items from one folder to another"
-Language = "english"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
