@@ -8,13 +8,13 @@ pub const ERROR_LOG_PATH: &str = "error.log";
 pub const ACTIVITY_LOG_PATH: &str = "activity.log";
 
 /// path to the config file
-pub const CONFIG_PATH: &str = "movefiles-config.toml";
+pub const CONFIG_PATH: &str = "config.toml";
 
 
 /// default TOML config file
 pub const DEFAULT_CONFIG: &str = "seconds = 60
-source = \"\"
-destination = \"\"";
+source = ''
+destination = ''";
 
 /// the format of the timestamp used in `report()`
 pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";

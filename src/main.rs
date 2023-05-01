@@ -127,24 +127,29 @@ fn main() {
     let mut error_encountered = false;
 
     if source_val.is_none() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"source\" is not set. Set it with source = \"path\".").as_str(), true, LogLvl::Error);
+        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"source\" is not set. Set it with {}.", "source = 'path'".yellow()).as_str(), true, LogLvl::Error);
         error_encountered = true;
     }
     if destination_val.is_none() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"destination\" is not set. Set it with destination = \"path\".").as_str(), true, LogLvl::Error);
+        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"destination\" is not set. Set it with {}.", "destination = 'path'".yellow()).as_str(), true, LogLvl::Error);
         error_encountered = true;
     }
     if seconds_val.is_none() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"seconds\" is not set. Set it with seconds = amount of seconds (example: seconds = 5)").as_str(), true, LogLvl::Error);
+        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"seconds\" is not set. Set it with {} (example: seconds = 5)", "seconds = number".yellow()).as_str(), true, LogLvl::Error);
         error_encountered = true;
     }
 
+    if error_encountered {
+        pause!("press any key to exit . . .");
+        exit(1);
+    }
+
     if !source_val.unwrap().is_str() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: key \"source\" should be a string, in the form {}.", "source = \"path\"".yellow()).as_str(), true, LogLvl::Error);
+        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: key \"source\" should be a string, in the form {}.", "source = 'path'".yellow()).as_str(), true, LogLvl::Error);
         error_encountered = true;
     }
     if !destination_val.unwrap().is_str() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: key \"destination\" should be a string, in the form {}.", "destination = \"path\"".yellow()).as_str(), true, LogLvl::Error);
+        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: key \"destination\" should be a string, in the form {}.", "destination = 'path'".yellow()).as_str(), true, LogLvl::Error);
         error_encountered = true;
     }
     if !seconds_val.unwrap().is_integer() {

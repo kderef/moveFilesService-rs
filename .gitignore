@@ -1,12 +1,11 @@
 # Ignore
 /target
 /*.log
-/destination.txt
-/source.txt
-/seconds.txt
+/config.toml
 /test-1
 /test-2
 /prep.bat
 
 # Allow
 !/target/doc
+*.txt
