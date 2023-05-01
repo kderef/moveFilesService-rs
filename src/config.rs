@@ -23,7 +23,7 @@ pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";
 pub const PATH_TIME_FORMAT: &str = "%d-%m-%Y";
 
 /// the max number of seconds a user can set in the `seconds.txt` file.
-pub const SECONDS_MAX: u64 = 60 * 60 * 24;
+pub const SECONDS_MAX: u32 = 60 * 60 * 24;
 
 /// the logo that is printen upon first startup
 pub const LOGO: &str = r"

@@ -7,7 +7,6 @@ mod config;
 mod movefiles;
 mod util;
 
-use toml::Table;
 use chrono::Datelike;
 use colored::Colorize;
 use config::*;
@@ -21,6 +20,14 @@ use std::{
     path::Path,
 };
 use util::{report, LogLvl};
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct Config {
+    seconds: u32,
+    source: String,
+    destination:String
+}
 
 fn main() {
     println!(
@@ -47,15 +54,11 @@ fn main() {
 
     // check for config files (source.txt, destination) //
 
-    let mut source;       // source directory
-    let mut destination;  // destination directory
-    let sleep_time;   // amount of time to sleep after loop{} iteration
-
     let file_copy_options = fs_extra::file::CopyOptions::new().overwrite(true);
     let dir_copy_options = fs_extra::dir::CopyOptions::new().overwrite(true);
 
     if !file_exists!(CONFIG_PATH) {
-        report(&mut error_log, format!("the config file `{CONFIG_PATH}` does not exist, creating it with default config...").as_str(), true, LogLvl::Warning);
+        report(&mut error_log, format!("the config file `{CONFIG_PATH}` does not exist, creating it with default config..\n.").as_str(), true, LogLvl::Warning);
         let conf_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -64,18 +67,18 @@ fn main() {
         match conf_file {
             Ok(mut fd) => match write!(&mut fd, "{}", DEFAULT_CONFIG) {
                 Ok(_) => {
-                    report(&mut error_log, "the config file has been created. Please enter your values into it and restart the program.", true, LogLvl::Error);
+                    report(&mut error_log, "the config file has been created. Please enter your values into it and restart the program.\n", true, LogLvl::Error);
                     pause!("press any key to exit . . .");
                     exit(1);
                 }
                 Err(msg) => {
-                    report(&mut error_log, format!("failed to write the default config to the config file because of error: {}", msg.to_string()).as_str(), true, LogLvl::Error);
+                    report(&mut error_log, format!("failed to write the default config to the config file because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
                     pause!("press any key to exit . . .");
                     exit(1);
                 }
             },
             Err(msg) => {
-                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {}", msg.to_string()).as_str(), true, LogLvl::Error);
+                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
                 pause!("press any key to exit . . .");
                 exit(1);
             }
@@ -83,7 +86,7 @@ fn main() {
     }
     let config_contents = std::fs::read_to_string(CONFIG_PATH).unwrap();
     if config_contents.trim().is_empty() {
-        report(&mut error_log, format!("the config file `{CONFIG_PATH}` is empty, filling it with default config...").as_str(), true, LogLvl::Warning);
+        report(&mut error_log, format!("the config file `{CONFIG_PATH}` is empty, filling it with default config...\n").as_str(), true, LogLvl::Warning);
         let conf_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -93,19 +96,19 @@ fn main() {
             Ok(mut fd) => {
                 match write!(&mut fd, "{}", DEFAULT_CONFIG) {
                     Ok(_) => {
-                        report(&mut error_log, format!("please enter your values into the config file `{CONFIG_PATH}` and restart the program.").as_str(), true, LogLvl::Warning);
+                        report(&mut error_log, format!("please enter your values into the config file `{CONFIG_PATH}` and restart the program.\n").as_str(), true, LogLvl::Warning);
                         pause!("press any key to exit . . .");
                         exit(1);
                     },
                     Err(msg) => {
-                        report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {}", msg.to_string()).as_str(), true, LogLvl::Warning);
+                        report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Warning);
                         pause!("press any key to exit . . .");
                         exit(1);
                     }
                 }
             },
             Err(msg) => {
-                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` because of error: {}", msg.to_string()).as_str(), true, LogLvl::Error);
+                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
                 pause!("press any key to exit . . .");
                 exit(1);
             }
@@ -113,53 +116,23 @@ fn main() {
     }
 
     /* read with TOML */
-    let mut error_log_ref = &mut error_log;
-    let parsed_contents = config_contents.parse::<Table>().unwrap_or_else(move |e| {
-        report(&mut error_log_ref, format!("failed to parse config, because of error: {}", e.to_string()).as_str(), true, LogLvl::Error);
-        pause!("press any key to exit . . .");
-        exit(1);
-    });
+    let parsed_config: Config = match toml::from_str(&config_contents) {
+        Ok(conf) => conf,
+        Err(msg) => {
+            report(&mut error_log, format!("in config file `{CONFIG_PATH}`: failed to parse config because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
+            pause!("press any key to exit . . .");
+            exit(1);
+        }
+    };
 
-    let source_val = parsed_contents.get("source");
-    let destination_val = parsed_contents.get("destination");
-    let seconds_val = parsed_contents.get("seconds");
+    let mut source = parsed_config.source;
+    let mut destination = parsed_config.destination;
+    let sleep_time = parsed_config.seconds;
 
     let mut error_encountered = false;
 
-    if source_val.is_none() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"source\" is not set. Set it with {}.", "source = 'path'".yellow()).as_str(), true, LogLvl::Error);
-        error_encountered = true;
-    }
-    if destination_val.is_none() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"destination\" is not set. Set it with {}.", "destination = 'path'".yellow()).as_str(), true, LogLvl::Error);
-        error_encountered = true;
-    }
-    if seconds_val.is_none() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: \"seconds\" is not set. Set it with {} (example: seconds = 5)", "seconds = number".yellow()).as_str(), true, LogLvl::Error);
-        error_encountered = true;
-    }
-
-    if error_encountered {
-        pause!("press any key to exit . . .");
-        exit(1);
-    }
-
-    if !source_val.unwrap().is_str() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: key \"source\" should be a string, in the form {}.", "source = 'path'".yellow()).as_str(), true, LogLvl::Error);
-        error_encountered = true;
-    }
-    if !destination_val.unwrap().is_str() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: key \"destination\" should be a string, in the form {}.", "destination = 'path'".yellow()).as_str(), true, LogLvl::Error);
-        error_encountered = true;
-    }
-    if !seconds_val.unwrap().is_integer() {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: key \"seconds\" should be a whole number, in the form {}.", "seconds = number".yellow()).as_str(), true, LogLvl::Error);
-        error_encountered = true;
-    }
-
-    sleep_time = seconds_val.unwrap().as_integer().unwrap();
-    if sleep_time < 0 || sleep_time > (config::SECONDS_MAX as i64) {
-        report(&mut error_log, format!("in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)",
+    if sleep_time > config::SECONDS_MAX {
+        report(&mut error_log, format!("in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
             config::SECONDS_MAX, config::SECONDS_MAX / 3600).as_str(),
             true,
             LogLvl::Error
@@ -171,9 +144,6 @@ fn main() {
         pause!("press any key to exit . . .");
         exit(1);
     }
-
-    source = source_val.unwrap().as_str().unwrap().to_owned();
-    destination = destination_val.unwrap().as_str().unwrap().to_owned();
 
     if !source.ends_with(MAIN_SEPARATOR) && !source.trim().is_empty() {
         source.push(MAIN_SEPARATOR);
