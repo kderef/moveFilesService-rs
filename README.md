@@ -11,3 +11,5 @@ a service that continuesly moves files and folders from one directory to another
 `destination.txt`: the destination directory where all items will be moved to
 
 ---
+## INSTALLATION
+install the .exe from the `releases` tab, create the necessary files and then run it.
