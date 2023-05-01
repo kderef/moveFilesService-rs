@@ -6,6 +6,7 @@ use crate::config::TIME_FORMAT;
 pub enum LogLvl {
     Activity,
     Error,
+    Warning
 }
 
 impl ToString for LogLvl {
@@ -13,6 +14,7 @@ impl ToString for LogLvl {
         match &self {
             Self::Activity => "[ACTIVITY]".yellow().to_string(),
             Self::Error => "[ERROR]".red().to_string(),
+            Self::Warning => "[WARNING]".yellow().to_string()
         }
     }
 }

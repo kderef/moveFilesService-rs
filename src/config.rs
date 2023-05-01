@@ -7,14 +7,14 @@ pub const ERROR_LOG_PATH: &str = "error.log";
 /// the file name/path to the activity log, this log contains all file operations (move_file, move_dir, etc.)
 pub const ACTIVITY_LOG_PATH: &str = "activity.log";
 
-/// the file name/path to the file containing the source directory.
-pub const SOURCE_FILE_PATH: &str = "source.txt";
+/// path to the config file
+pub const CONFIG_PATH: &str = "movefiles-config.toml";
 
-/// the file name/path to the file containing the destination directory.
-pub const DESTINATION_FILE_PATH: &str = "destination.txt";
 
-/// the file name/path to the file containing the amount of seconds the program should sleep after completing an iteration.
-pub const SECONDS_FILE_PATH: &str = "seconds.txt";
+/// default TOML config file
+pub const DEFAULT_CONFIG: &str = "seconds = 60
+source = \"\"
+destination = \"\"";
 
 /// the format of the timestamp used in `report()`
 pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";
