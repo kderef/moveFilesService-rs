@@ -3,7 +3,7 @@ use crate::config::{
 };
 use crate::timestamp;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, MAIN_SEPARATOR};
 
 /// returns file in format `{path_} - [%d-%m-%Y]`
 pub fn timestamped_path(path_: &str) -> String {
@@ -47,13 +47,19 @@ pub fn try_get_source() -> Result<String, String> {
         ));
     }
     let file_contents = std::fs::read_to_string(SOURCE_FILE_PATH).unwrap();
+    let mut file_contents_str = file_contents.as_str().trim().to_owned();
+
+    if !file_contents_str.ends_with(MAIN_SEPARATOR) {
+        file_contents_str.push(MAIN_SEPARATOR);
+    }
+
     if file_contents.trim().is_empty() {
         return Err(format!(
             "in try_get_source(): the source file `{}` is empty.\n",
             SOURCE_FILE_PATH
         ));
     }
-    if !Path::new(file_contents.as_str()).is_dir() {
+    if !dir_exists!(file_contents.as_str()) {
         return Err(format!(
             "in try_get_source(): the dir `{file_contents}` in the source file `{SOURCE_FILE_PATH}` does not exist or is invalid.\n"));
     }
@@ -73,8 +79,8 @@ pub fn try_get_destination() -> Result<String, String> {
     }
     let mut file_contents_str = file_contents.as_str().trim().to_owned();
 
-    if !file_contents_str.ends_with(r"\") {
-        file_contents_str.push_str(r"\");
+    if !file_contents_str.ends_with(MAIN_SEPARATOR) {
+        file_contents_str.push(MAIN_SEPARATOR);
     }
 
     if !dir_exists!(file_contents.as_str()) {
