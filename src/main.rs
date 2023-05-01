@@ -108,12 +108,7 @@ fn main() {
             exit(0);
         }
     }
-
-    // dag = 1
-    // dag = 1
-    // dag = 1
-    // dag = 2
-
+    
     println!("{}:\t\t{}", "source dir".yellow(), source);
     println!("{}:\t{}", "destination dir".yellow(), destination);
     println!("{SEPARATOR}");
