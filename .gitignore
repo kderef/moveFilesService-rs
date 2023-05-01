@@ -1,0 +1,7 @@
+/target
+/*.log
+/destination.txt
+/source.txt
+/seconds.txt
+/test-1
+/test-2
