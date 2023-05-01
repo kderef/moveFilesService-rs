@@ -12,6 +12,7 @@ a service that continuesly moves files and folders from one directory to another
 
 ---
 ## COMPILATION
+**prerequisites: [cargo](https://doc.rust-lang.org/cargo/) and [git CLI](https://cli.github.com/)**
 ```bash
 git clone https://github.com/x-kvoid-x/moveFilesService-rs
 cd moveFilesService-rs
