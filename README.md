@@ -11,5 +11,15 @@ a service that continuesly moves files and folders from one directory to another
 `destination.txt`: the destination directory where all items will be moved to
 
 ---
+## COMPILATION
+```bash
+git clone https://github.com/x-kvoid-x/moveFilesService-rs
+cd moveFilesService-rs
+cargo build --release
+# the executable will be in the ./target/release/ directory.
+```
+
+
+---
 ## INSTALLATION
 install the .exe from the `releases` tab, create the necessary files and then run it.
