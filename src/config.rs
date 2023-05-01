@@ -16,6 +16,7 @@ pub const SECONDS_FILE_PATH: &str = "seconds.txt";
 /// the format of the timestamp used in `report()`
 pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";
 
+/// format used in filenames, e.g. `errors - [PATH_TIME_FORMAT].log`
 pub const PATH_TIME_FORMAT: &str = "%d-%m-%Y";
 
 /// the max number of seconds a user can set in the `seconds.txt` file.
