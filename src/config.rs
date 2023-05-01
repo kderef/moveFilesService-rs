@@ -1,3 +1,6 @@
+/// the version specified in Cargo.toml (statically read)
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// the file name/path to the error log, errors will be logged to this path.
 pub const ERROR_LOG_PATH: &str = "error.log";
 
@@ -23,14 +26,18 @@ pub const PATH_TIME_FORMAT: &str = "%d-%m-%Y";
 pub const SECONDS_MAX: u64 = 60 * 60 * 24;
 
 /// the logo that is printen upon first startup
-pub const LOGO: &str = "\
-___  ___                 ______ _ _           
-|  \\/  |                |  ____(_) |          
-| \\  / | _____   _____  | |__   _| | ___  ___ 
-| |\\/| |/ _ \\ \\ / / _ \\ |  __| | | |/ _ \\/ __|
-| |  | | (_) \\ V /  __/ | |    | | |  __/\\__ \\
-|_|  |_|\\___/ \\_/ \\___| |_|    |_|_|\\___||___/
-\n  [Kian Heitkamp] [rust]\n";
+pub const LOGO: &str = r"
+$$\      $$\                               $$$$$$$$\ $$\ $$\                     
+$$$\    $$$ |                              $$  _____|\__|$$ |                    
+$$$$\  $$$$ | $$$$$$\ $$\    $$\  $$$$$$\  $$ |      $$\ $$ | $$$$$$\   $$$$$$$\ 
+$$\$$\$$ $$ |$$  __$$\\$$\  $$  |$$  __$$\ $$$$$\    $$ |$$ |$$  __$$\ $$  _____|
+$$ \$$$  $$ |$$ /  $$ |\$$\$$  / $$$$$$$$ |$$  __|   $$ |$$ |$$$$$$$$ |\$$$$$$\  
+$$ |\$  /$$ |$$ |  $$ | \$$$  /  $$   ____|$$ |      $$ |$$ |$$   ____| \____$$\ 
+$$ | \_/ $$ |\$$$$$$  |  \$  /   \$$$$$$$\ $$ |      $$ |$$ |\$$$$$$$\ $$$$$$$  |
+\__|     \__| \______/    \_/     \_______|\__|      \__|\__| \_______|\_______/  ";
 
 /// separator
 pub const SEPARATOR: &str = "===================================";
+
+/// separator for logo
+pub const SEPARATOR_LONG: &str = "===========================================================================================";

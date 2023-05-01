@@ -21,7 +21,7 @@ use std::{
 use util::{report, LogLvl};
 
 fn main() {
-    println!("{LOGO}{SEPARATOR}");
+    println!("{LOGO} [{}{}]\n{SEPARATOR_LONG}", "v".yellow(), VERSION.yellow());
     println!(
         "{}: {}\n",
         "start date".yellow(),
@@ -108,7 +108,7 @@ fn main() {
             exit(0);
         }
     }
-    
+
     println!("{}:\t\t{}", "source dir".yellow(), source);
     println!("{}:\t{}", "destination dir".yellow(), destination);
     println!("{SEPARATOR}");
