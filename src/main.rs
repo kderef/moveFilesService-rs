@@ -59,13 +59,13 @@ fn main() {
     let mut destination = toml_config.destination;
     let sleep_time = toml_config.seconds;
 
-    if sleep_time > config::SECONDS_MAX {
+    if sleep_time > SECONDS_MAX {
         report(
             &mut error_log,
             format!(
                 "in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
-                config::SECONDS_MAX,
-                config::SECONDS_MAX / 3600
+                SECONDS_MAX,
+                SECONDS_MAX / 3600
             )
             .as_str(),
             true,
