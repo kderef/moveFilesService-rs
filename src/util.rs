@@ -1,12 +1,12 @@
 use colored::Colorize;
 use std::io::Write;
 
-use crate::config::TIME_FORMAT;
+use crate::{config::TIME_FORMAT, timestamp};
 
 pub enum LogLvl {
     Activity,
     Error,
-    Warning
+    Warning,
 }
 
 impl ToString for LogLvl {
@@ -14,36 +14,9 @@ impl ToString for LogLvl {
         match &self {
             Self::Activity => "[ACTIVITY]".yellow().to_string(),
             Self::Error => "[ERROR]".red().to_string(),
-            Self::Warning => "[WARNING]".yellow().to_string()
+            Self::Warning => "[WARNING]".yellow().to_string(),
         }
     }
-}
-
-/// get hour from 0 - 23
-#[macro_export]
-macro_rules! current_hour {
-    () => {
-        chrono::Local::now().hour()
-    };
-}
-
-/// get current day 1 - 31
-#[macro_export]
-macro_rules! current_day {
-    () => {
-        chrono::Local::now().day()
-    };
-}
-
-/// timestamp used for logging purposes
-#[macro_export]
-macro_rules! timestamp {
-    () => {
-        chrono::Local::now().format(TIME_FORMAT)
-    };
-    ($time_fmt:expr) => {
-        chrono::Local::now().format($time_fmt)
-    };
 }
 
 /// sleep for `$sleep_time` seconds, continuously printing how much time is left.
@@ -90,7 +63,6 @@ macro_rules! pause {
     }
 }
 
-
 /// macro to (re-)open error log
 #[macro_export]
 macro_rules! open_error_log {
@@ -110,8 +82,7 @@ macro_rules! open_error_log {
                 );
 
                 exit(1);
-        })
- 
+            })
     };
 }
 

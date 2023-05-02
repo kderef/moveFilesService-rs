@@ -8,11 +8,12 @@ pub const ERROR_LOG_PATH: &str = "error.log";
 pub const ACTIVITY_LOG_PATH: &str = "activity.log";
 
 /// path to the config file
-pub const CONFIG_PATH: &str = "config.toml";
-
+pub const CONFIG_PATH: &str = "config.txt";
 
 /// default TOML config file
-pub const DEFAULT_CONFIG: &str = "seconds = 60
+pub const DEFAULT_CONFIG: &str = r"seconds = 60
+
+# example: source = 'C:\temp-1\'
 source = ''
 destination = ''";
 
@@ -22,10 +23,10 @@ pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";
 /// format used in filenames, e.g. `errors - [PATH_TIME_FORMAT].log`
 pub const PATH_TIME_FORMAT: &str = "%d-%m-%Y";
 
-/// the max number of seconds a user can set in the `seconds.txt` file.
+/// the max number of seconds a user can set in the config file
 pub const SECONDS_MAX: u32 = 60 * 60 * 24;
 
-/// the logo that is printen upon first startup
+/// the logo that is printed upon first startup
 pub const LOGO: &str = r"
 $$\      $$\                               $$$$$$$$\ $$\ $$\                     
 $$$\    $$$ |                              $$  _____|\__|$$ |                    
@@ -40,4 +41,5 @@ $$ | \_/ $$ |\$$$$$$  |  \$  /   \$$$$$$$\ $$ |      $$ |$$ |\$$$$$$$\ $$$$$$$  
 pub const SEPARATOR: &str = "===================================";
 
 /// separator for logo
-pub const SEPARATOR_LONG: &str = "===========================================================================================";
+pub const SEPARATOR_LONG: &str =
+    "===========================================================================================";

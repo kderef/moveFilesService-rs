@@ -2,9 +2,11 @@
 
 extern crate fs_extra;
 extern crate walkdir;
+extern crate serde;
 
 mod config;
 mod movefiles;
+mod time_utils;
 mod util;
 
 use chrono::Datelike;
@@ -12,6 +14,7 @@ use colored::Colorize;
 use config::*;
 use fs_extra::{dir::move_dir, file::move_file};
 use movefiles::*;
+use serde::Deserialize;
 use std::path::MAIN_SEPARATOR;
 use std::process::exit;
 use std::{
@@ -20,13 +23,12 @@ use std::{
     path::Path,
 };
 use util::{report, LogLvl};
-use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct Config {
     seconds: u32,
     source: String,
-    destination:String
+    destination: String,
 }
 
 fn main() {
@@ -72,13 +74,13 @@ fn main() {
                     exit(1);
                 }
                 Err(msg) => {
-                    report(&mut error_log, format!("failed to write the default config to the config file because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
+                    report(&mut error_log, format!("failed to write the default config to the config file because of error: {msg}\n").as_str(), true, LogLvl::Error);
                     pause!("press any key to exit . . .");
                     exit(1);
                 }
             },
             Err(msg) => {
-                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
+                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {msg}\n").as_str(), true, LogLvl::Error);
                 pause!("press any key to exit . . .");
                 exit(1);
             }
@@ -86,29 +88,41 @@ fn main() {
     }
     let config_contents = std::fs::read_to_string(CONFIG_PATH).unwrap();
     if config_contents.trim().is_empty() {
-        report(&mut error_log, format!("the config file `{CONFIG_PATH}` is empty, filling it with default config...\n").as_str(), true, LogLvl::Warning);
+        report(
+            &mut error_log,
+            format!(
+                "the config file `{CONFIG_PATH}` is empty, filling it with default config...\n"
+            )
+            .as_str(),
+            true,
+            LogLvl::Warning,
+        );
         let conf_file = OpenOptions::new()
             .create(true)
             .write(true)
             .open(CONFIG_PATH);
 
         match conf_file {
-            Ok(mut fd) => {
-                match write!(&mut fd, "{}", DEFAULT_CONFIG) {
-                    Ok(_) => {
-                        report(&mut error_log, format!("please enter your values into the config file `{CONFIG_PATH}` and restart the program.\n").as_str(), true, LogLvl::Warning);
-                        pause!("press any key to exit . . .");
-                        exit(1);
-                    },
-                    Err(msg) => {
-                        report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Warning);
-                        pause!("press any key to exit . . .");
-                        exit(1);
-                    }
+            Ok(mut fd) => match write!(&mut fd, "{}", DEFAULT_CONFIG) {
+                Ok(_) => {
+                    report(&mut error_log, format!("please enter your values into the config file `{CONFIG_PATH}` and restart the program.\n").as_str(), true, LogLvl::Warning);
+                    pause!("press any key to exit . . .");
+                    exit(1);
+                }
+                Err(msg) => {
+                    report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {msg}\n").as_str(), true, LogLvl::Warning);
+                    pause!("press any key to exit . . .");
+                    exit(1);
                 }
             },
             Err(msg) => {
-                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
+                report(
+                    &mut error_log,
+                    format!("failed to open config file `{CONFIG_PATH}` because of error: {msg}\n")
+                        .as_str(),
+                    true,
+                    LogLvl::Error,
+                );
                 pause!("press any key to exit . . .");
                 exit(1);
             }
@@ -119,7 +133,7 @@ fn main() {
     let parsed_config: Config = match toml::from_str(&config_contents) {
         Ok(conf) => conf,
         Err(msg) => {
-            report(&mut error_log, format!("in config file `{CONFIG_PATH}`: failed to parse config because of error: {}\n", msg.to_string()).as_str(), true, LogLvl::Error);
+            report(&mut error_log, format!("in config file `{CONFIG_PATH}`: failed to parse config because of error: {msg}\n").as_str(), true, LogLvl::Error);
             pause!("press any key to exit . . .");
             exit(1);
         }
@@ -129,18 +143,18 @@ fn main() {
     let mut destination = parsed_config.destination;
     let sleep_time = parsed_config.seconds;
 
-    let mut error_encountered = false;
-
     if sleep_time > config::SECONDS_MAX {
-        report(&mut error_log, format!("in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
-            config::SECONDS_MAX, config::SECONDS_MAX / 3600).as_str(),
+        report(
+            &mut error_log,
+            format!(
+                "in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
+                config::SECONDS_MAX,
+                config::SECONDS_MAX / 3600
+            )
+            .as_str(),
             true,
-            LogLvl::Error
+            LogLvl::Error,
         );
-        error_encountered = true;
-    }
-
-    if error_encountered {
         pause!("press any key to exit . . .");
         exit(1);
     }
@@ -153,7 +167,15 @@ fn main() {
     }
 
     if !dir_exists!(&source) {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: the source directory '{source}' does not exist.").as_str(), true, LogLvl::Error);
+        report(
+            &mut error_log,
+            format!(
+                "in config file `{CONFIG_PATH}`: the source directory '{source}' does not exist."
+            )
+            .as_str(),
+            true,
+            LogLvl::Error,
+        );
         pause!("press any key to exit . . .");
         exit(1);
     }
