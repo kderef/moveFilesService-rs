@@ -6,7 +6,7 @@ a service that continuesly moves files and folders from one directory to another
 
 ---
 ## COMPILATION
-**prerequisites: [cargo](https://doc.rust-lang.org/cargo/) and [git CLI](https://cli.github.com/)**
+**prerequisites: [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) and [git CLI](https://cli.github.com/)**
 ```bash
 git clone https://github.com/Kn-Ht/moveFilesService-rs
 cd moveFilesService-rs
@@ -17,4 +17,4 @@ cargo build --release
 
 ---
 ## INSTALLATION
-install the .exe from the `releases` tab, create the necessary files and then run it.
+install the .exe from the `releases` tab, then run it once to generate an empty config file, fill it with your values and restart the program.
