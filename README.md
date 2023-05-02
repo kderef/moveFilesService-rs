@@ -2,7 +2,7 @@
 a service that continuesly moves files and folders from one directory to another.
 
 ## USAGE:
-- create the config file called `movefiles-config.toml` in the same location as the executable, run the program, it will fill the file with the default config.
+- run the program and read the instructions.
 
 ---
 ## COMPILATION
