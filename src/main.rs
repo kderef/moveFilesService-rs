@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
 
 extern crate fs_extra;
-extern crate walkdir;
 extern crate serde;
+extern crate walkdir;
 
 mod config;
 mod movefiles;
+mod parse_config;
 mod time_utils;
 mod util;
 
@@ -14,7 +15,7 @@ use colored::Colorize;
 use config::*;
 use fs_extra::{dir::move_dir, file::move_file};
 use movefiles::*;
-use serde::Deserialize;
+use parse_config::parse_toml_config;
 use std::path::MAIN_SEPARATOR;
 use std::process::exit;
 use std::{
@@ -23,13 +24,6 @@ use std::{
     path::Path,
 };
 use util::{report, LogLvl};
-
-#[derive(Deserialize)]
-struct Config {
-    seconds: u32,
-    source: String,
-    destination: String,
-}
 
 fn main() {
     println!(
@@ -59,89 +53,11 @@ fn main() {
     let file_copy_options = fs_extra::file::CopyOptions::new().overwrite(true);
     let dir_copy_options = fs_extra::dir::CopyOptions::new().overwrite(true);
 
-    if !file_exists!(CONFIG_PATH) {
-        report(&mut error_log, format!("the config file `{CONFIG_PATH}` does not exist, creating it with default config..\n.").as_str(), true, LogLvl::Warning);
-        let conf_file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(CONFIG_PATH);
+    let toml_config = parse_toml_config(&mut error_log);
 
-        match conf_file {
-            Ok(mut fd) => match write!(&mut fd, "{}", DEFAULT_CONFIG) {
-                Ok(_) => {
-                    report(&mut error_log, "the config file has been created. Please enter your values into it and restart the program.\n", true, LogLvl::Error);
-                    pause!("press any key to exit . . .");
-                    exit(1);
-                }
-                Err(msg) => {
-                    report(&mut error_log, format!("failed to write the default config to the config file because of error: {msg}\n").as_str(), true, LogLvl::Error);
-                    pause!("press any key to exit . . .");
-                    exit(1);
-                }
-            },
-            Err(msg) => {
-                report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {msg}\n").as_str(), true, LogLvl::Error);
-                pause!("press any key to exit . . .");
-                exit(1);
-            }
-        }
-    }
-    let config_contents = std::fs::read_to_string(CONFIG_PATH).unwrap();
-    if config_contents.trim().is_empty() {
-        report(
-            &mut error_log,
-            format!(
-                "the config file `{CONFIG_PATH}` is empty, filling it with default config...\n"
-            )
-            .as_str(),
-            true,
-            LogLvl::Warning,
-        );
-        let conf_file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(CONFIG_PATH);
-
-        match conf_file {
-            Ok(mut fd) => match write!(&mut fd, "{}", DEFAULT_CONFIG) {
-                Ok(_) => {
-                    report(&mut error_log, format!("please enter your values into the config file `{CONFIG_PATH}` and restart the program.\n").as_str(), true, LogLvl::Warning);
-                    pause!("press any key to exit . . .");
-                    exit(1);
-                }
-                Err(msg) => {
-                    report(&mut error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {msg}\n").as_str(), true, LogLvl::Warning);
-                    pause!("press any key to exit . . .");
-                    exit(1);
-                }
-            },
-            Err(msg) => {
-                report(
-                    &mut error_log,
-                    format!("failed to open config file `{CONFIG_PATH}` because of error: {msg}\n")
-                        .as_str(),
-                    true,
-                    LogLvl::Error,
-                );
-                pause!("press any key to exit . . .");
-                exit(1);
-            }
-        }
-    }
-
-    /* read with TOML */
-    let parsed_config: Config = match toml::from_str(&config_contents) {
-        Ok(conf) => conf,
-        Err(msg) => {
-            report(&mut error_log, format!("in config file `{CONFIG_PATH}`: failed to parse config because of error: {msg}\n").as_str(), true, LogLvl::Error);
-            pause!("press any key to exit . . .");
-            exit(1);
-        }
-    };
-
-    let mut source = parsed_config.source;
-    let mut destination = parsed_config.destination;
-    let sleep_time = parsed_config.seconds;
+    let mut source = toml_config.source;
+    let mut destination = toml_config.destination;
+    let sleep_time = toml_config.seconds;
 
     if sleep_time > config::SECONDS_MAX {
         report(
