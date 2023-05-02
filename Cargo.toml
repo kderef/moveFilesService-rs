@@ -1,12 +1,14 @@
 [package]
 name = "MoveFilesFolders"
+description = "move files and folders from location A to B"
 version = "1.0.4"
 edition = "2021"
 build = "build.rs"
 
 # metadata for exe
 [package.metadata.winresource]
-FileDescription = "move files and folders from location A to B"
+OriginalFilename = "MoveFilesFolders.exe"
+LegalCopyright  = "© Kian Heitkamp 2023"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
