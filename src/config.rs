@@ -8,12 +8,14 @@ pub const ERROR_LOG_PATH: &str = "error.log";
 pub const ACTIVITY_LOG_PATH: &str = "activity.log";
 
 /// path to the config file
-pub const CONFIG_PATH: &str = "config.txt";
+pub const CONFIG_PATH: &str = "config.ini";
 
 /// default TOML config file
 pub const DEFAULT_CONFIG: &str = r"seconds = 60
 
-# example: source = 'C:\temp-1\'
+# example:
+# source = 'C:\temp\'
+# destination = 'U:\target\'
 source = ''
 destination = ''";
 
