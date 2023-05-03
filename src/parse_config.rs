@@ -2,13 +2,12 @@ use serde::Deserialize;
 use std::{
     fs::{File, OpenOptions},
     io::Write,
-    path::Path,
-    process::exit,
+    path::Path
 };
 
-use crate::config::{CONFIG_PATH, DEFAULT_CONFIG};
+use crate::{config::{CONFIG_PATH, DEFAULT_CONFIG}, pause_exit};
 use crate::LogLvl;
-use crate::{file_exists, pause, report};
+use crate::{file_exists, report};
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -19,7 +18,7 @@ pub struct Config {
 
 pub fn parse_toml_config(error_log: &mut File) -> Config {
     if !file_exists!(CONFIG_PATH) {
-        report(error_log, format!("the config file `{CONFIG_PATH}` does not exist, creating it with default config..\n.").as_str(), true, LogLvl::Warning);
+        report(error_log, format!("the config file `{CONFIG_PATH}` does not exist, creating it with default config...\n").as_str(), true, LogLvl::Warning);
         let conf_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -29,19 +28,16 @@ pub fn parse_toml_config(error_log: &mut File) -> Config {
             Ok(mut fd) => match write!(&mut fd, "{}", DEFAULT_CONFIG) {
                 Ok(_) => {
                     report(error_log, "the config file has been created. Please enter your values into it and restart the program.\n", true, LogLvl::Error);
-                    pause!("press any key to exit . . .");
-                    exit(1);
+                    pause_exit!();
                 }
                 Err(msg) => {
                     report(error_log, format!("failed to write the default config to the config file because of error: {msg}\n").as_str(), true, LogLvl::Error);
-                    pause!("press any key to exit . . .");
-                    exit(1);
+                    pause_exit!();
                 }
             },
             Err(msg) => {
                 report(error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {msg}\n").as_str(), true, LogLvl::Error);
-                pause!("press any key to exit . . .");
-                exit(1);
+                pause_exit!();
             }
         }
     }
@@ -65,13 +61,11 @@ pub fn parse_toml_config(error_log: &mut File) -> Config {
             Ok(mut fd) => match write!(&mut fd, "{}", DEFAULT_CONFIG) {
                 Ok(_) => {
                     report(error_log, format!("please enter your values into the config file `{CONFIG_PATH}` and restart the program.\n").as_str(), true, LogLvl::Warning);
-                    pause!("press any key to exit . . .");
-                    exit(1);
+                    pause_exit!();
                 }
                 Err(msg) => {
                     report(error_log, format!("failed to open config file `{CONFIG_PATH}` for writing because of error: {msg}\n").as_str(), true, LogLvl::Warning);
-                    pause!("press any key to exit . . .");
-                    exit(1);
+                    pause_exit!();
                 }
             },
             Err(msg) => {
@@ -82,8 +76,7 @@ pub fn parse_toml_config(error_log: &mut File) -> Config {
                     true,
                     LogLvl::Error,
                 );
-                pause!("press any key to exit . . .");
-                exit(1);
+                pause_exit!();
             }
         }
     }
@@ -93,8 +86,7 @@ pub fn parse_toml_config(error_log: &mut File) -> Config {
         Ok(conf) => conf,
         Err(msg) => {
             report(error_log, format!("in config file `{CONFIG_PATH}`: failed to parse config because of error: {msg}\n").as_str(), true, LogLvl::Error);
-            pause!("press any key to exit . . .");
-            exit(1);
+            pause_exit!();
         }
     };
 }

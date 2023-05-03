@@ -71,8 +71,7 @@ fn main() {
             true,
             LogLvl::Error,
         );
-        pause!("press any key to exit . . .");
-        exit(1);
+        pause_exit!("press any key to exit . . .");
     }
 
     if !source.ends_with(MAIN_SEPARATOR) && !source.trim().is_empty() {
@@ -92,13 +91,11 @@ fn main() {
             true,
             LogLvl::Error,
         );
-        pause!("press any key to exit . . .");
-        exit(1);
+        pause_exit!("press any key to exit . . .");
     }
     if !dir_exists!(&destination) {
         report(&mut error_log, format!("in config file `{CONFIG_PATH}`: the destination directory '{destination}' does not exist.").as_str(), true, LogLvl::Error);
-        pause!("press any key to exit . . .");
-        exit(1);
+        pause_exit!("press any key to exit . . .");
     }
 
     println!("{}:\t\t{}", "source dir".yellow(), source);
@@ -128,21 +125,20 @@ fn main() {
                     let entry_type = dir_entry.file_type();
                     let entry_name = dir_entry.file_name().to_str().unwrap();
                     let entry_path = dir_entry.path();
-                    let dest_path = &destination;
 
-                    let new_path = Path::new(&dest_path).join(entry_name);
+                    let new_path = Path::new(&destination).join(entry_name);
 
                     if entry_type.is_file() {
                         report(
                             &mut activity_log,
-                            format!("moving file `{}` to `{}`...\n", entry_name, dest_path)
+                            format!("moving file `{}` to `{}`...\n", entry_name, &destination)
                                 .as_str(),
                             true,
                             LogLvl::Activity,
                         );
 
                         match move_file(entry_path, new_path, &file_copy_options) {
-                            Ok(_) => report(&mut activity_log, "done\n", true, LogLvl::Activity),
+                            Ok(_) => report(&mut activity_log, "done\n\n", true, LogLvl::Activity),
                             Err(e) => {
                                 report(
                                     &mut activity_log,
@@ -161,17 +157,17 @@ fn main() {
                     } else if entry_type.is_dir() {
                         report(
                             &mut activity_log,
-                            format!("moving folder `{}` to `{}`...\n", entry_name, dest_path)
+                            format!("moving folder `{}` to `{}`...\n", entry_name, &destination)
                                 .as_str(),
                             true,
                             LogLvl::Activity,
                         );
-                        match move_dir(entry_path, dest_path, &dir_copy_options) {
-                            Ok(_) => report(&mut activity_log, "done\n", true, LogLvl::Activity),
+                        match move_dir(entry_path, &destination, &dir_copy_options) {
+                            Ok(_) => report(&mut activity_log, "done\n\n", true, LogLvl::Activity),
                             Err(e) => {
                                 report(
                                     &mut activity_log,
-                                    "ERROR (see error.log)\n",
+                                    "ERROR (see error.log)\n\n",
                                     true,
                                     LogLvl::Error,
                                 );
@@ -183,7 +179,7 @@ fn main() {
                                 );
                             }
                         }
-                        report(&mut activity_log, "done\n", true, LogLvl::Activity);
+                        report(&mut activity_log, "done\n\n", true, LogLvl::Activity);
                     }
                 }
                 Err(e) => report(

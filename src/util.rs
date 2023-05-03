@@ -1,5 +1,6 @@
 use colored::Colorize;
 use std::io::Write;
+use std::fs::File;
 
 use crate::{config::TIME_FORMAT, timestamp};
 
@@ -11,11 +12,11 @@ pub enum LogLvl {
 
 impl ToString for LogLvl {
     fn to_string(&self) -> String {
-        match &self {
-            Self::Activity => "[ACTIVITY]".yellow().to_string(),
-            Self::Error => "[ERROR]".red().to_string(),
-            Self::Warning => "[WARNING]".yellow().to_string(),
-        }
+        match self {
+            Self::Activity => "[ACTIVITY]".yellow(),
+            Self::Error => "[ERROR]".red(),
+            Self::Warning => "[WARNING]".bright_yellow(),
+        }.to_string()
     }
 }
 
@@ -33,9 +34,9 @@ macro_rules! sleep_countdown {
         }
     };
 }
-
+ 
 /// report the given msg to the log file `log`, and to stdout IF print_output is set to `true`
-pub fn report(log: &mut std::fs::File, msg: &str, print_output: bool, severity: LogLvl) {
+pub fn report(log: &mut File, msg: &str, print_output: bool, severity: LogLvl) {
     let time = timestamp!();
     write!(log, "{} {}", time, msg).unwrap();
     if print_output {
@@ -52,14 +53,18 @@ pub fn report(log: &mut std::fs::File, msg: &str, print_output: bool, severity: 
 ///
 /// if no parameters are given, pause with the default message.
 #[macro_export]
-macro_rules! pause {
+macro_rules! pause_exit {
     () => {
-        let _ = std::process::Command::new("cmd.exe").args(["/c", "pause"]).status()
+        print!("press any key to exit . . .");
+        std::io::stdout().flush().unwrap();
+        let _ = std::process::Command::new("cmd.exe").args(["/c", "pause"]).status();
+        std::process::exit(1);
     };
     ($msg:expr) => {
         print!("{}", $msg);
         std::io::stdout().flush().unwrap();
         let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
+        std::process::exit(1);
     }
 }
 

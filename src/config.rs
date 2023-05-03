@@ -4,6 +4,9 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// the file name/path to the error log, errors will be logged to this path.
 pub const ERROR_LOG_PATH: &str = "error.log";
 
+/// separator for add_sep function
+pub const LOG_SEPARATOR: &str = "\n\n";
+
 /// the file name/path to the activity log, this log contains all file operations (move_file, move_dir, etc.)
 pub const ACTIVITY_LOG_PATH: &str = "activity.log";
 
