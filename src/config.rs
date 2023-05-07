@@ -14,11 +14,20 @@ pub const ACTIVITY_LOG_PATH: &str = "activity.log";
 pub const CONFIG_PATH: &str = "config.ini";
 
 /// default TOML config file
+#[cfg(target_os = "windows")]
 pub const DEFAULT_CONFIG: &str = r"seconds = 60
 
 # example:
 # source = 'C:\temp\'
 # destination = 'U:\target\'
+source = ''
+destination = ''";
+#[cfg(target_os = "linux")]
+pub const DEFAULT_CONFIG: &str = r"seconds = 60
+
+# example:
+# source = '/home/<username>/Documents/map-1'
+# destination = '/home/<username>/Documents/map-2'
 source = ''
 destination = ''";
 

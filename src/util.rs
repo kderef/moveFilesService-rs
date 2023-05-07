@@ -55,18 +55,30 @@ pub fn report(log: &mut File, msg: &str, print_output: bool, severity: LogLvl) {
 #[macro_export]
 macro_rules! pause_exit {
     () => {
-        print!("press any key to exit . . .");
-        std::io::stdout().flush().unwrap();
-        let _ = std::process::Command::new("cmd.exe").args(["/c", "pause"]).status();
+        let _ = if cfg!(target_os = "windows") {
+            print!("press any key to exit . . .");
+            std::io::stdout().flush().unwrap();
+            std::process::Command::new("cmd.exe").args(["/c", "pause"]).status()
+        } else {
+            std::process::Command::new("/usr/bin/bash").args(["-c", "read -n 1 -p 'press any key to exit . . .'"]).status()
+        };
         std::process::exit(1);
     };
     ($msg:expr) => {
-        print!("{}", $msg);
-        std::io::stdout().flush().unwrap();
-        let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
-        std::process::exit(1);
+        if cfg!(target_os = "windows") {
+            print!("{}", $msg);
+            std::io::stdout().flush().unwrap();
+            let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
+        }
+        else if cfg!(target_os = "linux") {
+            let _ = std::process::Command::new("/usr/bin/bash").args(["-c", format!("read -n 1 -p '{}'", $msg).as_str()]).status();
+            std::process::exit(1);
+        } else {
+            todo!("unkown target");
+        }
     }
 }
+
 
 /// macro to (re-)open error log
 #[macro_export]
