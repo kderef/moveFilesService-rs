@@ -71,7 +71,7 @@ fn main() {
             true,
             LogLvl::Error,
         );
-        pause_exit!("press any key to exit . . .");
+        pause_exit!();
     }
 
     if !source.ends_with(MAIN_SEPARATOR) && !source.trim().is_empty() {
@@ -91,11 +91,11 @@ fn main() {
             true,
             LogLvl::Error,
         );
-        pause_exit!("press any key to exit . . .");
+        pause_exit!();
     }
     if !dir_exists!(&destination) {
         report(&mut error_log, format!("in config file `{CONFIG_PATH}`: the destination directory '{destination}' does not exist.").as_str(), true, LogLvl::Error);
-        pause_exit!("press any key to exit . . .");
+        pause_exit!();
     }
 
     println!("{}:\t\t{}", "source dir".yellow(), source);

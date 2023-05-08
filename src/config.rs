@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 /// the version specified in Cargo.toml (statically read)
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -14,33 +16,15 @@ pub const ACTIVITY_LOG_PATH: &str = "activity.log";
 pub const CONFIG_PATH: &str = "config.ini";
 
 /// default TOML config file
-#[cfg(target_os = "windows")]
-pub const DEFAULT_CONFIG: &str = r"seconds = 60
-
-# example:
-# source = 'C:\temp\'
-# destination = 'U:\target\'
-source = ''
-destination = ''";
-
-#[cfg(target_os = "linux")]
-pub const DEFAULT_CONFIG: &str = r"seconds = 60
-
-# example:
-# source = '/home/<username>/Documents/map-1'
-# destination = '/home/<username>/Documents/map-2'
-source = ''
-destination = ''";
-
-#[cfg(target_os = "macos")]
-pub const DEFAULT_CONFIG: &str = r"seconds = 60
-
-# example:
-# source = '/Users/<username>/Documents/map-1'
-# destination = '/Users/<username>/Documents/map-2'
-source = ''
-destination = ''";
-
+pub const DEFAULT_CONFIG: &str = if cfg!(target_os = "windows") {
+    include_str!("default-configs/default-conf-windows.ini")
+} else if cfg!(target_os = "linux") {
+    include_str!("default-configs/default-conf-linux.ini")
+} else if cfg!(target_os = "macos") {
+    include_str!("default-configs/default-conf-macos.ini")
+} else {
+    ""
+};
 
 /// the format of the timestamp used in `report()`
 pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";

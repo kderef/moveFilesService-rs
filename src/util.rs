@@ -52,44 +52,25 @@ pub fn report(log: &mut File, msg: &str, print_output: bool, severity: LogLvl) {
 /// if parameter $msg is given, print that message and run CMD.exe /c pause
 ///
 /// if no parameters are given, pause with the default message.
+#[cfg(target_os = "windows")]
 #[macro_export]
 macro_rules! pause_exit {
     () => {
-        #[cfg(target_os = "windows")]
-        {
-            print!("press any key to exit . . .");
-            std::io::stdout().flush().unwrap();
-            let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
-            std::process::exit(1);
-        }
-
-        #[cfg(any(target_os = "linux", target_os = "macos"))]
-        {
-            let _ = std::process::Command::new("/usr/bin/read").arg("-n 1 -p press any key to exit . . .").status();
-            std::process::exit(1);
-        }
-
-        todo!("unimplented target.");
+        print!("press any key to exit . . .");
+        std::io::stdout().flush().unwrap();
+        let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
+        std::process::exit(1);
     };
-    ($msg:expr) => {
-        #[cfg(target_os = "windows")]
-        {
-            print!("{}", $msg);
-            std::io::stdout().flush().unwrap();
-            let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
-            std::process::exit(1);
-        }
-
-        #[cfg(any(target_os = "linux", target_os = "macos"))]
-        {
-            let _ = std::process::Command::new("/usr/bin/read").args(["-n 1", format!("-p {}", $msg).as_str()]).status();
-            std::process::exit(1);
-        }
-
-        todo!("unimplented target");
-    }
 }
 
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[macro_export]
+macro_rules! pause_exit {
+    () => {
+            let _ = std::process::Command::new("/usr/bin/read").args(["-n 1", "-p press any key to exit . . ."]).status();
+            std::process::exit(1);
+    };
+}
 
 /// macro to (re-)open error log
 #[macro_export]
