@@ -5,27 +5,33 @@ extern crate serde;
 extern crate walkdir;
 
 mod config;
+mod logger;
 mod movefiles;
 mod parse_config;
 mod time_utils;
 mod util;
 
-use chrono::Datelike;
 use colored::Colorize;
-use config::*;
 use fs_extra::{dir::move_dir, file::move_file};
-use movefiles::*;
+use logger::Logger;
+
+use config::*;
 use parse_config::parse_toml_config;
 use std::path::MAIN_SEPARATOR;
-use std::process::exit;
 use std::{
-    fs::{File, OpenOptions},
     io::Write,
     path::Path,
 };
-use util::{report, LogLvl};
 
 fn main() {
+    /* initialize logging */
+    let mut log = Logger::new(
+        "%d-%m-%Y",
+        "log",
+        "activity",
+        "error",
+    );
+
     println!(
         "{LOGO} [{}{}]\n{SEPARATOR_LONG}",
         "v".yellow(),
@@ -37,40 +43,27 @@ fn main() {
         timestamp!().to_string().green()
     );
 
-    /* log files */
-    let mut error_log: File;
-    let mut activity_log: File;
-
-    let mut start_date = current_day!();
-    let mut error_log_path = timestamped_path(ERROR_LOG_PATH);
-    let mut activity_log_path = timestamped_path(ACTIVITY_LOG_PATH);
-
-    error_log = open_error_log!(error_log_path.clone());
-    activity_log = open_activity_log!(activity_log_path.clone(), error_log);
-
     // check for config files (source.txt, destination) //
 
     let file_copy_options = fs_extra::file::CopyOptions::new().overwrite(true);
     let dir_copy_options = fs_extra::dir::CopyOptions::new().overwrite(true);
 
-    let toml_config = parse_toml_config(&mut error_log);
+    let toml_config = parse_toml_config(&mut log);
 
     let mut source = toml_config.source;
     let mut destination = toml_config.destination;
     let sleep_time = toml_config.seconds;
 
     if sleep_time > SECONDS_MAX {
-        report(
-            &mut error_log,
+        log.err(
             format!(
                 "in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
                 SECONDS_MAX,
                 SECONDS_MAX / 3600
             )
             .as_str(),
-            true,
-            LogLvl::Error,
         );
+
         pause_exit!();
     }
 
@@ -82,19 +75,17 @@ fn main() {
     }
 
     if !dir_exists!(&source) {
-        report(
-            &mut error_log,
+        log.err(
             format!(
                 "in config file `{CONFIG_PATH}`: the source directory '{source}' does not exist."
             )
-            .as_str(),
-            true,
-            LogLvl::Error,
+            .as_str()
         );
+
         pause_exit!();
     }
     if !dir_exists!(&destination) {
-        report(&mut error_log, format!("in config file `{CONFIG_PATH}`: the destination directory '{destination}' does not exist.").as_str(), true, LogLvl::Error);
+        log.err(format!("in config file `{CONFIG_PATH}`: the destination directory '{destination}' does not exist.").as_str());
         pause_exit!();
     }
 
@@ -103,22 +94,6 @@ fn main() {
     println!("{SEPARATOR}");
 
     loop {
-        if current_day!() != start_date {
-            start_date = current_day!();
-            error_log_path = timestamped_path(ERROR_LOG_PATH);
-            activity_log_path = timestamped_path(ACTIVITY_LOG_PATH);
-            // if is a new day, reopen logs.
-            error_log = open_error_log!(error_log_path.clone());
-            activity_log = open_activity_log!(activity_log_path.clone(), error_log);
-        }
-
-        if !file_exists!(&error_log_path.clone()) {
-            error_log = open_error_log!(error_log_path.clone());
-        }
-        if !file_exists!(&activity_log_path.clone()) {
-            activity_log = open_activity_log!(activity_log_path.clone(), error_log);
-        }
-
         for item in walkdir::WalkDir::new(&source).min_depth(1) {
             match item {
                 Ok(dir_entry) => {
@@ -129,65 +104,29 @@ fn main() {
                     let new_path = Path::new(&destination).join(entry_name);
 
                     if entry_type.is_file() {
-                        report(
-                            &mut activity_log,
-                            format!("moving file `{}` to `{}`...\n", entry_name, &destination)
-                                .as_str(),
-                            true,
-                            LogLvl::Activity,
-                        );
+                        log.info(format!("moving file `{}` to `{}`...", entry_name, &destination).as_str());
 
                         match move_file(entry_path, new_path, &file_copy_options) {
-                            Ok(_) => report(&mut activity_log, "done\n\n", true, LogLvl::Activity),
+                            Ok(_) => log.info("done\n\n"),
                             Err(e) => {
-                                report(
-                                    &mut activity_log,
-                                    "ERROR (see error.log)\n",
-                                    true,
-                                    LogLvl::Error,
-                                );
-                                report(
-                                    &mut error_log,
-                                    format!("{}\n", e).as_str(),
-                                    false,
-                                    LogLvl::Error,
-                                );
+                                log.info("ERROR (see error.log)\n\n");
+                                log.err(format!("{e}\n").as_str());
                             }
                         }
                     } else if entry_type.is_dir() {
-                        report(
-                            &mut activity_log,
-                            format!("moving folder `{}` to `{}`...\n", entry_name, &destination)
-                                .as_str(),
-                            true,
-                            LogLvl::Activity,
-                        );
+                        log.info(format!("moving folder `{}` to `{}`...\n", entry_name, &destination).as_str());
+
                         match move_dir(entry_path, &destination, &dir_copy_options) {
-                            Ok(_) => report(&mut activity_log, "done\n\n", true, LogLvl::Activity),
+                            Ok(_) => log.info("done.\n\n"),
                             Err(e) => {
-                                report(
-                                    &mut activity_log,
-                                    "ERROR (see error.log)\n\n",
-                                    true,
-                                    LogLvl::Error,
-                                );
-                                report(
-                                    &mut error_log,
-                                    format!("{}\n", e).as_str(),
-                                    false,
-                                    LogLvl::Error,
-                                );
+                                log.info("ERROR (see error.log)\n\n");
+                                log.err(format!("{e}\n").as_str());
                             }
                         }
-                        report(&mut activity_log, "done\n\n", true, LogLvl::Activity);
+                        log.info("done.\n\n");
                     }
                 }
-                Err(e) => report(
-                    &mut error_log,
-                    format!("in WalkDir(): `{e}`\n").as_str(),
-                    true,
-                    LogLvl::Error,
-                ),
+                Err(e) => log.err(format!("in WalkDir(): `{e}`\n").as_str())
             }
         }
         sleep_countdown!(sleep_time);
