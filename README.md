@@ -13,6 +13,11 @@ cd moveFilesService-rs
 cargo build --release
 # the executable will be in the ./target/release/ directory.
 ```
+---
+## Supported Platforms
+- Windows
+- Macos
+- Linux
 
 
 ---
