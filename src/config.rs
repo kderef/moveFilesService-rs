@@ -22,6 +22,7 @@ pub const DEFAULT_CONFIG: &str = r"seconds = 60
 # destination = 'U:\target\'
 source = ''
 destination = ''";
+
 #[cfg(target_os = "linux")]
 pub const DEFAULT_CONFIG: &str = r"seconds = 60
 
@@ -30,6 +31,16 @@ pub const DEFAULT_CONFIG: &str = r"seconds = 60
 # destination = '/home/<username>/Documents/map-2'
 source = ''
 destination = ''";
+
+#[cfg(target_os = "macos")]
+pub const DEFAULT_CONFIG: &str = r"seconds = 60
+
+# example:
+# source = '/Users/<username>/Documents/map-1'
+# destination = '/Users/<username>/Documents/map-2'
+source = ''
+destination = ''";
+
 
 /// the format of the timestamp used in `report()`
 pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";
