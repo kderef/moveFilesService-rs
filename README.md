@@ -21,8 +21,3 @@ cargo build --release
 - Windows
 - Macos
 - Linux
-
-
----
-## Installation
-install the .exe from the `releases` tab, then run it once to generate an empty config file, fill it with your values and restart the program.
