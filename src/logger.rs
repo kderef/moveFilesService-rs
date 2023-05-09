@@ -6,6 +6,7 @@ use colored::Colorize;
 
 use crate::pause_exit;
 
+#[macro_export]
 macro_rules! chrono_time {
     ($format:expr) => {
         chrono::Local::now().format($format).to_string()
@@ -132,7 +133,7 @@ impl Logger {
 
         let time = chrono_time!(self.time_format);
 
-        eprintln!("[{}] {}: {}", time.green(), "[WARNING]".yellow(), msg);
+        eprintln!("[{}] {}: {msg}", time.green(), "[WARNING]".yellow());
         writeln!(self.err_fd, "[{time}] [WARNING]: {msg}").unwrap();
     }
     pub fn info(&mut self, msg: &str) {
@@ -140,7 +141,7 @@ impl Logger {
 
         let time = chrono_time!(self.time_format);
 
-        println!("[{}] {}: {}", time.green(), "[INFO]".bold(), msg);
+        println!("[{}] {}: {msg}", time.green(), "[INFO]".bold());
         writeln!(self.info_fd, "[{time}] [INFO]: {msg}").unwrap();
     }
     pub fn err(&mut self, msg: &str) {
@@ -148,7 +149,7 @@ impl Logger {
 
         let time = chrono_time!(self.time_format);
 
-        eprintln!("[{}] {}: {}", time.green(), "[ERROR]".red(), msg);
+        eprintln!("[{}] {}: {msg}", time.green(), "[ERROR]".red());
         writeln!(&mut self.err_fd, "[{time}] [ERROR]: {msg}").unwrap();
     }
 }

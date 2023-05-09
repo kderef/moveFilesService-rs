@@ -6,31 +6,22 @@ extern crate walkdir;
 
 mod config;
 mod logger;
-mod movefiles;
 mod parse_config;
-mod time_utils;
 mod util;
 
 use colored::Colorize;
 use fs_extra::{dir::move_dir, file::move_file};
 use logger::Logger;
+use walkdir::WalkDir;
 
 use config::*;
 use parse_config::parse_toml_config;
 use std::path::MAIN_SEPARATOR;
-use std::{
-    io::Write,
-    path::Path,
-};
+use std::{io::Write, path::Path};
 
 fn main() {
     /* initialize logging */
-    let mut log = Logger::new(
-        "%d-%m-%Y",
-        "log",
-        "activity",
-        "error",
-    );
+    let mut log = Logger::new("%d-%m-%Y", "log", "activity", "error");
 
     println!(
         "{LOGO} [{}{}]\n{SEPARATOR_LONG}",
@@ -40,7 +31,7 @@ fn main() {
     println!(
         "{}: {}\n",
         "start date".yellow(),
-        timestamp!().to_string().green()
+        chrono_time!(TIME_FORMAT).green()
     );
 
     // check for config files (source.txt, destination) //
@@ -75,17 +66,14 @@ fn main() {
     }
 
     if !dir_exists!(&source) {
-        log.err(
-            format!(
-                "in config file `{CONFIG_PATH}`: the source directory '{source}' does not exist."
-            )
-            .as_str()
-        );
+        log.err(&format!(
+            "in config file `{CONFIG_PATH}`: the source directory '{source}' does not exist."
+        ));
 
         pause_exit!();
     }
     if !dir_exists!(&destination) {
-        log.err(format!("in config file `{CONFIG_PATH}`: the destination directory '{destination}' does not exist.").as_str());
+        log.err(&format!("in config file `{CONFIG_PATH}`: the destination directory '{destination}' does not exist."));
         pause_exit!();
     }
 
@@ -94,7 +82,7 @@ fn main() {
     println!("{SEPARATOR}");
 
     loop {
-        for item in walkdir::WalkDir::new(&source).min_depth(1) {
+        for item in WalkDir::new(&source).min_depth(1) {
             match item {
                 Ok(dir_entry) => {
                     let entry_type = dir_entry.file_type();
@@ -104,29 +92,35 @@ fn main() {
                     let new_path = Path::new(&destination).join(entry_name);
 
                     if entry_type.is_file() {
-                        log.info(format!("moving file `{}` to `{}`...", entry_name, &destination).as_str());
+                        log.info(&format!(
+                            "moving file `{entry_name}` to `{}`...",
+                            &destination
+                        ));
 
                         match move_file(entry_path, new_path, &file_copy_options) {
                             Ok(_) => log.info("done\n\n"),
                             Err(e) => {
                                 log.info("ERROR (see error.log)\n\n");
-                                log.err(format!("{e}\n").as_str());
+                                log.err(&format!("{e}\n"));
                             }
                         }
                     } else if entry_type.is_dir() {
-                        log.info(format!("moving folder `{}` to `{}`...\n", entry_name, &destination).as_str());
+                        log.info(&format!(
+                            "moving folder `{entry_name}` to `{}`...\n",
+                            &destination
+                        ));
 
                         match move_dir(entry_path, &destination, &dir_copy_options) {
                             Ok(_) => log.info("done.\n\n"),
                             Err(e) => {
                                 log.info("ERROR (see error.log)\n\n");
-                                log.err(format!("{e}\n").as_str());
+                                log.err(&format!("{e}\n"));
                             }
                         }
                         log.info("done.\n\n");
                     }
                 }
-                Err(e) => log.err(format!("in WalkDir(): `{e}`\n").as_str())
+                Err(e) => log.err(&format!("in WalkDir(): `{e}`\n")),
             }
         }
         sleep_countdown!(sleep_time);
