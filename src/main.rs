@@ -46,14 +46,11 @@ fn main() {
     let sleep_time = toml_config.seconds;
 
     if sleep_time > SECONDS_MAX {
-        log.err(
-            format!(
-                "in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
-                SECONDS_MAX,
-                SECONDS_MAX / 3600
-            )
-            .as_str(),
-        );
+        log.err(&format!(
+            "in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
+            SECONDS_MAX,
+            SECONDS_MAX / 3600
+        ));
 
         pause_exit!();
     }
