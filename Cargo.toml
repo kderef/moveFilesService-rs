@@ -1,7 +1,7 @@
 [package]
 name = "MoveFilesFolders"
 description = "move files and folders from location A to B"
-version = "1.0.7"
+version = "1.0.8"
 edition = "2021"
 build = "build.rs"
 
@@ -19,6 +19,11 @@ fs_extra = "1.3.0"
 walkdir = "2"
 toml = "0.7.3"
 serde = { version = "1.0.160", features = ["derive"] }
+simple-home-dir = "0.1.2"
+windows = "0.48.0"
+winapi = "0.3.9"
+msgbox = "0.7.0"
+is-terminal = "0.4.9"
 
 [build-dependencies]
 winresource = "0.1.14"

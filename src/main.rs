@@ -9,6 +9,7 @@ mod logger;
 mod parse_config;
 mod util;
 
+use crate::parse_config::config_path;
 use colored::Colorize;
 use fs_extra::{dir::move_dir, file::move_file};
 use logger::Logger;
@@ -16,23 +17,32 @@ use walkdir::WalkDir;
 
 use config::*;
 use parse_config::parse_toml_config;
+use is_terminal::IsTerminal;
 use std::path::MAIN_SEPARATOR;
 use std::{io::Write, path::Path};
 
-fn main() {
-    /* initialize logging */
-    let mut log = Logger::new("%d-%m-%Y", "log", "activity", "error");
+const DATE_FMT: &str = "%d-%m-%Y";
 
-    println!(
-        "{LOGO} [{}{}]\n{SEPARATOR_LONG}",
-        "v".yellow(),
-        VERSION.yellow()
-    );
-    println!(
-        "{}: {}\n",
-        "start date".yellow(),
-        chrono_time!(TIME_FORMAT).green()
-    );
+fn main() {
+    let is_term = std::io::stdout().is_terminal();
+    let conf_path = config_path();
+
+    /* initialize logging */
+    let mut log = Logger::new(DATE_FMT, LOG_EXT, ACTIVITY_LOG_PATH, ERROR_LOG_PATH);
+
+    if is_term {
+        println!(
+            "{LOGO} [{}{}]\n{SEPARATOR_LONG}",
+            "v".yellow(),
+            VERSION.yellow()
+        );
+        println!(
+            "{}: {}\n",
+            "start date".yellow(),
+            chrono_time!(TIME_FORMAT).green()
+        );
+    }
+
 
     // check for config files (source.txt, destination) //
 
@@ -41,15 +51,11 @@ fn main() {
 
     let toml_config = parse_toml_config(&mut log);
 
-    let mut source = toml_config.source;
-    let mut destination = toml_config.destination;
-    let sleep_time = toml_config.seconds;
+    let (mut source, mut destination, sleep_time) = toml_config.into();
 
     if sleep_time > SECONDS_MAX {
         log.err(&format!(
-            "in file `{CONFIG_PATH}`: key \"seconds\" should be > 0s and < {}s ({}h)\n",
-            SECONDS_MAX,
-            SECONDS_MAX / 3600
+            "in file `{}`: key \"seconds\" should be > 0s and < {SECONDS_MAX}s ({SECONDS_MAX_H}h)\n", conf_path.display()
         ));
 
         pause_exit!();
@@ -64,13 +70,13 @@ fn main() {
 
     if !dir_exists!(&source) {
         log.err(&format!(
-            "in config file `{CONFIG_PATH}`: the source directory '{source}' does not exist."
+            "in config file `{}`: the source directory '{source}' does not exist.", conf_path.display()
         ));
 
         pause_exit!();
     }
     if !dir_exists!(&destination) {
-        log.err(&format!("in config file `{CONFIG_PATH}`: the destination directory '{destination}' does not exist."));
+        log.err(&format!("in config file `{}`: the destination directory '{destination}' does not exist.", conf_path.display()));
         pause_exit!();
     }
 
@@ -117,7 +123,7 @@ fn main() {
                         log.info("done.\n\n");
                     }
                 }
-                Err(e) => log.err(&format!("in WalkDir(): `{e}`\n")),
+                Err(e) => log.err(&format!("in WalkDir(): `{e}`\n"))
             }
         }
         sleep_countdown!(sleep_time);

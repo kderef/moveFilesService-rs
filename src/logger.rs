@@ -1,5 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::io::Write;
+use std::path::{PathBuf, Path};
 
 use chrono::Datelike;
 use colored::Colorize;
@@ -66,11 +67,17 @@ macro_rules! fd_info_new {
     };
 }
 
+pub fn get_log_path() -> PathBuf {
+    Path::new(&simple_home_dir::home_dir().unwrap()).join(r"AppData\Local\MoveFilesService\logs")
+}
+
+type S = &'static str;
+
 pub struct Logger {
-    time_format: &'static str,
-    log_extension: &'static str,
-    info_log_prefix: &'static str,
-    err_log_prefix: &'static str,
+    time_format: S,
+    log_extension: S,
+    info_log_prefix: S,
+    err_log_prefix: S,
     info_log_name: String,
     err_log_name: String,
     err_fd: File,
@@ -79,20 +86,17 @@ pub struct Logger {
 }
 
 impl Logger {
-    pub fn new(
-        time_format: &'static str,
-        log_extension: &'static str,
-        info_log_prefix: &'static str,
-        err_log_prefix: &'static str,
-    ) -> Self {
+    pub fn new(time_format: S, log_extension: S, info_log_prefix: S, err_log_prefix: S) -> Self {
+        let log_dir = get_log_path();
+
         let path_time = chrono_time!("%d-%m-%Y");
-        let info_log_path = format!("{info_log_prefix} - [{path_time}].{log_extension}");
-        let err_log_path = format!("{err_log_prefix} - [{path_time}].{log_extension}");
+        let info_log_path = Path::new(&log_dir).join(format!("{info_log_prefix} - [{path_time}].{log_extension}"));
+        let err_log_path = Path::new(&log_dir).join(format!("{err_log_prefix} - [{path_time}].{log_extension}"));
         let time = chrono_time!(time_format);
 
-        let mut fd_error = fd_err_new!(err_log_path, time);
+        let mut fd_error = fd_err_new!(err_log_path.clone().into_os_string().into_string().unwrap(), time);
 
-        let fd_info = fd_info_new!(info_log_path, time, fd_error);
+        let fd_info = fd_info_new!(info_log_path.clone().into_os_string().into_string().unwrap(), time, fd_error);
 
         let d = day!();
 
@@ -101,8 +105,8 @@ impl Logger {
             log_extension,
             info_log_prefix,
             err_log_prefix,
-            info_log_name: info_log_path,
-            err_log_name: err_log_path,
+            info_log_name: info_log_path.clone().into_os_string().into_string().unwrap(),
+            err_log_name: err_log_path.clone().into_os_string().into_string().unwrap(),
             err_fd: fd_error,
             info_fd: fd_info,
             day: d,
@@ -133,6 +137,9 @@ impl Logger {
 
         let time = chrono_time!(self.time_format);
 
+        let _ =
+            msgbox::create("MoveFiles Warning", format!("WARNING: {msg}").as_str(), msgbox::IconType::Error);
+
         eprintln!("[{}] {}: {msg}", time.green(), "[WARNING]".yellow());
         writeln!(self.err_fd, "[{time}] [WARNING]: {msg}").unwrap();
     }
@@ -148,6 +155,9 @@ impl Logger {
         self.validate_logs();
 
         let time = chrono_time!(self.time_format);
+    
+        let _ = 
+            msgbox::create("MoveFiles Error", format!("ERROR: {msg}").as_str(), msgbox::IconType::Error);
 
         eprintln!("[{}] {}: {msg}", time.green(), "[ERROR]".red());
         writeln!(&mut self.err_fd, "[{time}] [ERROR]: {msg}").unwrap();

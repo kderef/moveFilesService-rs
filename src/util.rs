@@ -20,9 +20,12 @@ macro_rules! sleep_countdown {
 #[macro_export]
 macro_rules! pause_exit {
     () => {
-        print!("press any key to exit . . .");
-        std::io::stdout().flush().unwrap();
-        let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
+        use is_terminal::IsTerminal;
+        if std::io::stdout().is_terminal() {
+            print!("press any key to exit . . .");
+            std::io::stdout().flush().unwrap();
+            let _ = std::process::Command::new("cmd.exe").args(["/c", "pause > nul"]).status();
+        }
         std::process::exit(1);
     };
 }
