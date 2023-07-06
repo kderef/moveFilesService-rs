@@ -18,6 +18,6 @@ cargo build --release
 ```
 ---
 ## Supported Platforms
-- Windows
-- Macos
-- Linux
+- Windows (tested on Win 11)
+- Macos   (tested on MacOS Monterey)
+- Linux   (testen on Arch and Void)
