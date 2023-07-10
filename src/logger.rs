@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::{PathBuf, Path};
@@ -5,7 +7,8 @@ use std::path::{PathBuf, Path};
 use chrono::Datelike;
 use colored::Colorize;
 
-use crate::pause_exit;
+use crate::parse_config::config_path;
+use crate::{pause_exit, dir_exists};
 
 #[macro_export]
 macro_rules! chrono_time {
@@ -68,7 +71,7 @@ macro_rules! fd_info_new {
 }
 
 pub fn get_log_path() -> PathBuf {
-    Path::new(&simple_home_dir::home_dir().unwrap()).join(r"AppData\Local\MoveFilesService\logs")
+    Path::new(&config_path()).join("logs")
 }
 
 type S = &'static str;
@@ -88,6 +91,13 @@ pub struct Logger {
 impl Logger {
     pub fn new(time_format: S, log_extension: S, info_log_prefix: S, err_log_prefix: S) -> Self {
         let log_dir = get_log_path();
+
+        if !dir_exists!(&log_dir) {
+            std::fs::create_dir(&log_dir).unwrap_or_else(|e| {
+                eprintln!("failed to create log folder: {e}");
+                std::process::exit(1);
+            })
+        }
 
         let path_time = chrono_time!("%d-%m-%Y");
         let info_log_path = Path::new(&log_dir).join(format!("{info_log_prefix} - [{path_time}].{log_extension}"));

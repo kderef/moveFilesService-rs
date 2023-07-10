@@ -5,56 +5,50 @@ extern crate serde;
 extern crate walkdir;
 
 mod config;
-mod logger;
+mod logging;
 mod parse_config;
 mod util;
 
+// use is_terminal::IsTerminal;
 use crate::parse_config::config_path;
 use colored::Colorize;
 use fs_extra::{dir::move_dir, file::move_file};
-use logger::Logger;
+use logging::*;
 use walkdir::WalkDir;
 
 use config::*;
 use parse_config::parse_toml_config;
-use is_terminal::IsTerminal;
 use std::path::MAIN_SEPARATOR;
 use std::{io::Write, path::Path};
 
-const DATE_FMT: &str = "%d-%m-%Y";
+// const DATE_FMT: &str = "%d-%m-%Y";
 
 fn main() {
-    let is_term = std::io::stdout().is_terminal();
-    let conf_path = config_path();
+    // let is_term = std::io::stdout().is_terminal();
+    let conf_path = config_path().join("config.ini");
 
-    /* initialize logging */
-    let mut log = Logger::new(DATE_FMT, LOG_EXT, ACTIVITY_LOG_PATH, ERROR_LOG_PATH);
-
-    if is_term {
-        println!(
-            "{LOGO} [{}{}]\n{SEPARATOR_LONG}",
-            "v".yellow(),
-            VERSION.yellow()
-        );
-        println!(
-            "{}: {}\n",
-            "start date".yellow(),
-            chrono_time!(TIME_FORMAT).green()
-        );
-    }
-
+    println!(
+        "{LOGO} [{}{}]\n{SEPARATOR_LONG}",
+        "v".yellow(),
+        VERSION.yellow()
+    );
+    println!(
+        "{}: {}\n",
+        "start date".yellow(),
+        chrono_time!(TIME_FORMAT).green()
+    );
 
     // check for config files (source.txt, destination) //
 
     let file_copy_options = fs_extra::file::CopyOptions::new().overwrite(true);
     let dir_copy_options = fs_extra::dir::CopyOptions::new().overwrite(true);
 
-    let toml_config = parse_toml_config(&mut log);
+    let toml_config = parse_toml_config();
 
     let (mut source, mut destination, sleep_time) = toml_config.into();
 
     if sleep_time > SECONDS_MAX {
-        log.err(&format!(
+        err(format!(
             "in file `{}`: key \"seconds\" should be > 0s and < {SECONDS_MAX}s ({SECONDS_MAX_H}h)\n", conf_path.display()
         ));
 
@@ -69,14 +63,15 @@ fn main() {
     }
 
     if !dir_exists!(&source) {
-        log.err(&format!(
+        err(format!(
             "in config file `{}`: the source directory '{source}' does not exist.", conf_path.display()
         ));
 
         pause_exit!();
     }
+
     if !dir_exists!(&destination) {
-        log.err(&format!("in config file `{}`: the destination directory '{destination}' does not exist.", conf_path.display()));
+        err(format!("in config file `{}`: the destination directory '{destination}' does not exist.", conf_path.display()));
         pause_exit!();
     }
 
@@ -95,37 +90,39 @@ fn main() {
                     let new_path = Path::new(&destination).join(entry_name);
 
                     if entry_type.is_file() {
-                        log.info(&format!(
+                        info(format!(
                             "moving file `{entry_name}` to `{}`...",
                             &destination
                         ));
 
                         match move_file(entry_path, new_path, &file_copy_options) {
-                            Ok(_) => log.info("done\n\n"),
+                            Ok(_) => info("done\n\n".into()),
                             Err(e) => {
-                                log.info("ERROR (see error.log)\n\n");
-                                log.err(&format!("{e}\n"));
+                                info("ERROR (see error.log)\n\n".into());
+                                err(format!("{e}\n"));
                             }
                         }
                     } else if entry_type.is_dir() {
-                        log.info(&format!(
+                        info(format!(
                             "moving folder `{entry_name}` to `{}`...\n",
                             &destination
                         ));
 
                         match move_dir(entry_path, &destination, &dir_copy_options) {
-                            Ok(_) => log.info("done.\n\n"),
+                            Ok(_) => info("done.\n\n".into()),
                             Err(e) => {
-                                log.info("ERROR (see error.log)\n\n");
-                                log.err(&format!("{e}\n"));
+                                info("ERROR (see error.log)\n\n".into());
+                                err(format!("{e}\n"));
                             }
                         }
-                        log.info("done.\n\n");
+                        info("done.\n\n".into());
                     }
                 }
-                Err(e) => log.err(&format!("in WalkDir(): `{e}`\n"))
+                Err(e) => err(format!("in WalkDir(): `{e}`\n"))
             }
         }
-        sleep_countdown!(sleep_time);
+        // sleep_countdown!(sleep_time);
+        println!("sleeping for {sleep_time} seconds.");
+        std::thread::sleep(std::time::Duration::from_secs(sleep_time.into()));
     }
 }

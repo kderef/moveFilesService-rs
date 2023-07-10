@@ -26,6 +26,15 @@ pub const DEFAULT_CONFIG: &str = if cfg!(target_os = "windows") {
     ""
 };
 
+/// the default path to the config
+pub const CONFIG_LOCATION: &str = if cfg!(target_os = "windows") {
+    r"C:\MoveFiles\"
+} else if cfg!(target_os = "linux") || cfg!(target_os = "macos") {
+    "~/.config/movefiles/"
+} else {
+    ""
+};
+
 /// the format of the timestamp used in `report()`
 pub const TIME_FORMAT: &str = "[%d-%m-%Y ~ %H:%M:%S]";
 
