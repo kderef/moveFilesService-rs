@@ -11,7 +11,7 @@ a service that continuesly moves files and folders from one directory to another
 ## Compilation
 **prerequisites: [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) and [git CLI](https://cli.github.com/)**
 ```bash
-git clone https://github.com/Kn-Ht/moveFilesService-rs
+git clone https://github.com/kderef/moveFilesService-rs
 cd moveFilesService-rs
 cargo build --release
 # the executable will be in the ./target/release/ directory.
